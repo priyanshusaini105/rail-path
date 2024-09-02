@@ -1,7 +1,8 @@
-import React, {useState } from "react"
+import  {useState } from "react"
 import { View, Text, TouchableOpacity, Image, Modal, FlatList, ScrollView, TextInput } from "react-native";
 import { StatusBar } from "expo-status-bar";
-// import { Redirect, router } from "expo-router";
+//  import { Redirect, router } from "expo-router";
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import tw from 'twrnc';
 const welcomeFace = require("../../assets/images/logo-rail.png")
@@ -12,7 +13,7 @@ const card3 = require("../../assets/images/ticket-2.png")
 const card4 = require("../../assets/images/ticket-3.png")
 
 export default function HomeScreen() {
-
+  const navigation = useNavigation();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState("AKGEC, Ghaziabad");
   const [pnrNumber, setPnrNumber] = useState('');
@@ -31,10 +32,29 @@ export default function HomeScreen() {
     setDropdownVisible(false);
   };
 
+  const handleCardPress = (screen:any) => {
+    if (screen) {
+      navigation.navigate(screen); // Navigate to the selected screen
+    }
+  };
+
   const handleButtonPress = () => {
     // Handle button press action
     console.log("Button pressed with PNR:", pnrNumber);
   };
+
+  const cardData: { label: string; icon: any; screen?: string; }[] = selectedOption === "AKGEC, Ghaziabad" ? [
+    { label: "Akgec CFC", icon: card1 },
+    { label: "Admin Block", icon: card2 },
+    { label: "Me Canteen", icon: card3 },
+    { label: "Parking", icon: card4 },
+  ] : [
+    { label: "Ticket Counter", icon: card1, screen: "CameraScreen" },
+    { label: "Waiting Room", icon: card2, screen: "CameraScreen" },
+    { label: "Canteen", icon: card3, screen: "CameraScreen" },
+    { label: "Washroom", icon: card4, screen: "CameraScreen" },
+  ]
+
   return (
       <SafeAreaView style={tw` bg-white h-full`}>
     {/* <Loader isLoading={loading} /> */}
@@ -118,14 +138,10 @@ export default function HomeScreen() {
           </View>
 
           <View style={tw`mt-14 flex flex-wrap flex-row justify-between w-[400px]`}>
-            {[
-              { label: "Ticket Counter", icon: card1 },
-              { label: "Waiting Room", icon: card2 },
-              { label: "Canteen", icon: card3},
-              { label: "Washroom", icon: card4 },
-            ].map((item, index) => (
+            {cardData.map((item, index) => (
               <TouchableOpacity
                 key={index}
+                onPress={() => handleCardPress(item.screen)}
                 style={tw`bg-white px-6 py-4 rounded-xl flex flex-row justify-center items-center border border-1 border-black/10  w-[48%] mb-4`}
               >
                 <Image
