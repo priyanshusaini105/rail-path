@@ -45,7 +45,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="Map"
         options={{
           title: "Emergency",
           tabBarIcon: ({ color, focused }) => (
