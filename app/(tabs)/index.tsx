@@ -126,14 +126,14 @@ export default function HomeScreen() {
             ].map((item, index) => (
               <TouchableOpacity
                 key={index}
-                style={tw`bg-white px-6 py-4 rounded-xl flex flex-row justify-center items-center border border-1 border-black/10  w-[48%] mb-4`}
+                style={tw`bg-white px-6 py-4 rounded-xl flex flex-row justify-center items-center border border border-black/10  w-[48%] mb-4`}
               >
                 <Image
                   source={item.icon as any}
                   style={tw`w-12 h-10 mb-2`}
                   resizeMode="contain"
                 />
-                <Text style={tw`text-black w-8/12 text-md font-semibold text-center`}>{item.label}</Text>
+                <Text style={tw`text-black w-8/12 font-semibold text-center`}>{item.label}</Text>
               </TouchableOpacity>
             ))}
           </View>

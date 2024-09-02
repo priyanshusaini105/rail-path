@@ -47,6 +47,20 @@ export default function TabLayout() {
       <Tabs.Screen
         name="Map"
         options={{
+          title: "Map",
+          tabBarIcon: ({ color, focused }) => (
+            <Feather name="bell" 
+            size={24}  
+            color={focused ? tw.color('bg-indigo-600') : color}
+            />
+          ),
+          tabBarLabelStyle: tw`text-xs`, 
+          tabBarActiveTintColor: tw.color('bg-indigo-600'),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
           title: "Emergency",
           tabBarIcon: ({ color, focused }) => (
             <Feather name="bell" 
