@@ -1,15 +1,6 @@
-import React, { useEffect, useState } from "react";
-import {
-  Image,
-  StyleSheet,
-  Platform,
-  View,
-  Alert,
-  Text,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
-import Mapbox, { type SymbolLayerStyle } from "@rnmapbox/maps";
+import React, { useEffect, useState, useCallback } from "react";
+import { StyleSheet, View, Alert, Text } from "react-native";
+import Mapbox from "@rnmapbox/maps";
 import * as Location from "expo-location";
 import { useLocalSearchParams } from "expo-router";
 import tw from "twrnc";
@@ -18,122 +9,137 @@ Mapbox.setAccessToken(
   "sk.eyJ1IjoicHJpeWFuc2h1c2FpbmkiLCJhIjoiY20wamE0MDIwMHFqajJsc2xvOGVvNzRwZSJ9.PcYp0iqTBPHPSXuJ9EWLZQ"
 );
 
-export default function Map() {
-  const [location, setLocation] = useState<number[] | null>(null);
-  const [route, setRoute] = useState<number[][]>([]);
-  const [distance, setDistance] = useState<number | null>(null);
-  const [duration, setDuration] = useState<number | null>(null);
-  const params = useLocalSearchParams() as unknown as CordinateObj;
-  console.log(params);
+interface TripInfo {
+  distance: number | null;
+  duration: number | null;
+}
 
-  const getDirections = async (
-    origin: { longitude: number; latitude: number },
-    destination: { longitude: number; latitude: number }
-  ) => {
-    const apiUrl = `https://api.mapbox.com/directions/v5/mapbox/walking/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}?geometries=geojson&access_token=sk.eyJ1IjoicHJpeWFuc2h1c2FpbmkiLCJhIjoiY20wamE0MDIwMHFqajJsc2xvOGVvNzRwZSJ9.PcYp0iqTBPHPSXuJ9EWLZQ`;
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
 
-    try {
-      const response = await fetch(apiUrl);
-      const data = await response.json();
-      const routeData = data.routes[0];
-      setDistance(routeData.distance / 1000);
-      setDuration(routeData.duration / 60);
-      return routeData.geometry.coordinates;
-    } catch (error) {
-      console.error("Error getting directions:", error);
-      return null;
-    }
-  };
+const Map: React.FC = () => {
+  const [location, setLocation] = useState<[number, number] | null>(null);
+  const [route, setRoute] = useState<[number, number][] | null>(null);
+  const [tripInfo, setTripInfo] = useState<TripInfo>({
+    distance: null,
+    duration: null,
+  });
+  const params = useLocalSearchParams<{
+    latitude: string;
+    longitude: string;
+  }>();
+
+  const getDirections = useCallback(
+    async (
+      origin: Coordinates,
+      destination: Coordinates
+    ): Promise<[number, number][] | null> => {
+      const apiUrl = `https://api.mapbox.com/directions/v5/mapbox/walking/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}?geometries=geojson&access_token=sk.eyJ1IjoicHJpeWFuc2h1c2FpbmkiLCJhIjoiY20wamE0MDIwMHFqajJsc2xvOGVvNzRwZSJ9.PcYp0iqTBPHPSXuJ9EWLZQ`;
+
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        const routeData = data.routes[0];
+        setTripInfo({
+          distance: routeData.distance / 1000,
+          duration: routeData.duration / 60,
+        });
+        return routeData.geometry.coordinates;
+      } catch (error) {
+        console.error("Error getting directions:", error);
+        return null;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    (async () => {
+    const setupLocation = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permission to access location was denied");
         return;
       }
 
-      let userLocation = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = userLocation.coords;
-      setLocation([longitude, latitude]);
-
-      const destinationCoords: { longitude: number; latitude: number } =
-        params as unknown as { longitude: number; latitude: number };
-
-      const coordinates = await getDirections(
-        { latitude, longitude },
-        destinationCoords
+      const watchPosition = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.Highest,
+          distanceInterval: 1,
+        },
+        (userLocation) => {
+          const { latitude, longitude } = userLocation.coords;
+          setLocation([longitude, latitude]);
+        }
       );
-      setRoute(coordinates);
-    })();
+
+      return () => watchPosition.remove();
+    };
+
+    setupLocation();
   }, []);
+
+  useEffect(() => {
+    if (location && params.latitude && params.longitude) {
+      getDirections(
+        { latitude: location[1], longitude: location[0] },
+        {
+          latitude: parseFloat(params.latitude),
+          longitude: parseFloat(params.longitude),
+        }
+      ).then((value: [number, number][] | null) => setRoute(value));
+    }
+  }, [location, params, getDirections]);
+
+  if (!location) return <Mapbox.MapView style={styles.map} />;
+
   return (
-    <View style={styles.page}>
-      <View style={tw`w-full h-full`}>
-        {location ? (
-          <Mapbox.MapView style={styles.map}>
-            <Mapbox.Camera zoomLevel={14} centerCoordinate={location} />
-            <Mapbox.PointAnnotation id="userLocation" coordinate={location}>
-              <View>
-                <View />
-              </View>
-            </Mapbox.PointAnnotation>
-            <Mapbox.PointAnnotation
-              id="destinationLocation"
-              coordinate={[params.longitude, params.latitude]}
-            >
-              <View>
-                {/* <Image source={require('./path/to/your/destination-icon.png')} style={{ width: 30, height: 30 }} /> */}
-                <View />
-              </View>
-            </Mapbox.PointAnnotation>
-            {route.length > 0 && (
-              <Mapbox.ShapeSource
-                id="routeSource"
-                shape={{
-                  type: "Feature",
-                  properties: {},
-                  geometry: { type: "LineString", coordinates: route },
-                }}
-              >
-                <Mapbox.LineLayer
-                  id="routeLayer"
-                  style={{
-                    lineColor: "blue",
-                    lineWidth: 5,
-                  }}
-                />
-              </Mapbox.ShapeSource>
-            )}
-          </Mapbox.MapView>
-        ) : (
-          <Mapbox.MapView style={styles.map} />
+    <View style={tw`flex-1 justify-center items-center`}>
+      <Mapbox.MapView style={tw`w-full h-full`}>
+        <Mapbox.Camera zoomLevel={14} centerCoordinate={location} />
+        <Mapbox.PointAnnotation id="userLocation" coordinate={location}>
+          <View />
+        </Mapbox.PointAnnotation>
+        <Mapbox.PointAnnotation
+          id="destinationLocation"
+          coordinate={[
+            parseFloat(params.longitude),
+            parseFloat(params.latitude),
+          ]}
+        />
+        {route.length > 0 && (
+          <Mapbox.ShapeSource
+            id="routeSource"
+            shape={{
+              type: "Feature",
+              properties: {},
+              geometry: { type: "LineString", coordinates: route },
+            }}
+          >
+            <Mapbox.LineLayer
+              id="routeLayer"
+              style={{ lineColor: "blue", lineWidth: 5 }}
+            />
+          </Mapbox.ShapeSource>
         )}
-        {distance !== null && duration !== null && (
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoText}>
-              Distance: {distance.toFixed(2)} km
-            </Text>
-            <Text style={styles.infoText}>
-              Duration: {duration.toFixed(2)} min
-            </Text>
-          </View>
-        )}
-      </View>
+      </Mapbox.MapView>
+      {tripInfo.distance && tripInfo.duration && (
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>
+            Distance: {tripInfo.distance.toFixed(2)} km
+          </Text>
+          <Text style={styles.infoText}>
+            Duration: {tripInfo.duration.toFixed(2)} min
+          </Text>
+        </View>
+      )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
- 
-  map: {
-    flex: 1,
-  },
+  map: { flex: 1 },
   infoContainer: {
     position: "absolute",
     bottom: 0,
@@ -142,13 +148,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
   },
-  infoText: {
-    fontSize: 16,
-  },
+  infoText: { fontSize: 16 },
 });
 
-
-interface CordinateObj {
-  latitude: number;
-  longitude: number;
-}
+export default Map;
