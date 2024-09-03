@@ -1,21 +1,32 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { View, TouchableOpacity, Text,  ViewStyle, StyleProp,GestureResponderEvent } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import tw from 'twrnc';
-import Feather from '@expo/vector-icons/Feather';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '@/constants/Colors';
+import { Tabs } from "expo-router";
+import React from "react";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  ViewStyle,
+  StyleProp,
+  GestureResponderEvent,
+} from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import tw from "twrnc";
+import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { Colors } from "@/constants/Colors";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   interface TabBarButtonProps {
-    children: any; 
-  onPress: any; 
+    children: any;
+    onPress: any;
     style?: StyleProp<ViewStyle>;
   }
-  
-  const TabBarButton: React.FC<TabBarButtonProps> = ({ children, onPress, style }) => (
+
+  const TabBarButton: React.FC<TabBarButtonProps> = ({
+    children,
+    onPress,
+    style,
+  }) => (
     <TouchableOpacity
       style={tw`-top-7 justify-center items-center bg-indigo-600  w-18 h-18 rounded-full shadow-lg shadow-black`}
       onPress={onPress}
@@ -27,53 +38,41 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: "white",
           borderTopWidth: 0,
           elevation: 2,
           height: 70,
           paddingHorizontal: 25,
           paddingBottom: 10,
           borderRadius: 30,
-          position: 'absolute',
+          position: "absolute",
           bottom: 10,
           left: 25,
           right: 25,
         },
       }}
+      initialRouteName="home"
     >
       <Tabs.Screen
-        name="Map"
+        name="home"
         options={{
-          title: "Map",
+          title: "Emergency",
           tabBarIcon: ({ color, focused }) => (
-            <Feather name="bell" 
-            size={24}  
-            color={focused ? tw.color('bg-indigo-600') : color}
+            <Feather
+              name="bell"
+              size={24}
+              color={focused ? tw.color("bg-indigo-600") : color}
             />
           ),
-          tabBarLabelStyle: tw`text-xs`, 
-          tabBarActiveTintColor: tw.color('bg-indigo-600'),
+          tabBarLabelStyle: tw`text-xs`,
+          tabBarActiveTintColor: tw.color("bg-indigo-600"),
         }}
       />
       <Tabs.Screen
         name="index"
-        options={{
-          title: "Emergency",
-          tabBarIcon: ({ color, focused }) => (
-            <Feather name="bell" 
-            size={24}  
-            color={focused ? tw.color('bg-indigo-600') : color}
-            />
-          ),
-          tabBarLabelStyle: tw`text-xs`, 
-          tabBarActiveTintColor: tw.color('bg-indigo-600'),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
         options={{
           title: "Explore",
           tabBarIcon: ({ color, focused }) => (
@@ -83,8 +82,8 @@ export default function TabLayout() {
               color="white"
             />
           ),
-          tabBarLabel: () => null, 
-          tabBarButton: (props:any) => <TabBarButton {...props} />,
+          tabBarLabel: () => null,
+          tabBarButton: (props: any) => <TabBarButton {...props} />,
         }}
       />
       <Tabs.Screen
@@ -95,11 +94,11 @@ export default function TabLayout() {
             <Ionicons
               name="chatbubble-outline"
               size={24}
-              color={focused ? tw.color('bg-indigo-600') : color}
+              color={focused ? tw.color("bg-indigo-600") : color}
             />
           ),
-          tabBarLabelStyle: tw`text-xs`, 
-          tabBarActiveTintColor: tw.color('bg-indigo-600'),
+          tabBarLabelStyle: tw`text-xs`,
+          tabBarActiveTintColor: tw.color("bg-indigo-600"),
         }}
       />
     </Tabs>
