@@ -107,14 +107,16 @@ const Map: React.FC = () => {
             parseFloat(params.longitude),
             parseFloat(params.latitude),
           ]}
-        />
-        {route.length > 0 && (
+        >
+          <View/>
+        </Mapbox.PointAnnotation>
+        {route!.length > 0 && (
           <Mapbox.ShapeSource
             id="routeSource"
             shape={{
               type: "Feature",
               properties: {},
-              geometry: { type: "LineString", coordinates: route },
+              geometry: { type: "LineString", coordinates: route! },
             }}
           >
             <Mapbox.LineLayer
