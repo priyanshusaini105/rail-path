@@ -211,18 +211,25 @@ export default function HomeScreen() {
                   place === Places.AKGEC
                     ? {
                         pathname: "/home/map",
-                        params:{
+                        params: {
                           latitude: item?.latitude,
-                          longitude: item?.longitude
-                        }
+                          longitude: item?.longitude,
+                          place: Places.AKGEC,
+                        },
                       }
-                    : { pathname: "/(tabs)/home/map" }
+                    : {
+                        pathname: "/(tabs)/home/map",
+                        params: {
+                          longitude: 28.65344083277467,
+                          latitude: 77.42722475272733,
+                          place: Places.RAILWAY_STATION,
+                        },
+                      }
                 }
                 key={index}
                 style={tw`bg-white px-6 py-4 rounded-xl flex flex-row justify-center items-center border border border-black/10  w-[48%] mb-4`}
               >
-                <TouchableOpacity
-                >
+                <TouchableOpacity style={tw`flex-row justify-center items-center gap-4`}>
                   <Image
                     source={item.icon as any}
                     style={tw`w-12 h-10 mb-2`}
